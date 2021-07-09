@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CarOwners.cpp">
+    <ClCompile Include="CarModels.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
