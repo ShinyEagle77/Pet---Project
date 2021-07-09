@@ -1,4 +1,6 @@
-﻿#include <iostream>
+﻿// ADD, PRINT, FIND, DEL
+
+#include <iostream>
 #include <string>
 #include <vector>
 #include <map>
@@ -153,23 +155,23 @@ private:
 };
 
 
-void ValidNextCharAndSkip (stringstream& s, const string& carmodel)
+void ValidNextCharAndSkip (stringstream& s, const string& carmodel) // NEEDS TO REWORK
 {
-	if (s.peek() != ' ' || s.peek() != '-')
+	if (s.peek() != ' ')
 	{
 		throw logic_error("Wrong format in: " + carmodel);
 	}
 	s.ignore(1);
 }
 
-CarModel ParseCarModel (const string& carmodel, const int& powerValue)
+CarModel ParseCarModel (const string& carmodel, const int& powerValue) // REWORK!!!
 {
 	stringstream car_stream(carmodel);
 	string name, type;
 	car_stream >> name;
-	// ValidNextCharAndSkip(car_stream, carmodel);
+	ValidNextCharAndSkip(car_stream, carmodel);
 	car_stream >> type;
-	// ValidNextCharAndSkip(car_stream, carmodel);
+	ValidNextCharAndSkip(car_stream, carmodel);
 	if (!car_stream.eof() || !car_stream)
 	{
 		throw logic_error("Wrong format : " + carmodel);
@@ -178,8 +180,6 @@ CarModel ParseCarModel (const string& carmodel, const int& powerValue)
 	return { name, type, powerValue };
 	
 }
-
-
 
 int main()
 {
@@ -196,12 +196,12 @@ int main()
 
 			if (operation == "Add")
 			{
-				string _companyname, _carNameType;
+				string _companyname, _carName, _carType;
 				int _carPowerValue;
 
-				stream >> _companyname >> _carNameType>> _carPowerValue;
+				stream >> _companyname >> _carName >> _carType >> _carPowerValue; // REWORK THIS SHIT
 
-				const CarModel car = ParseCarModel(_carNameType, _carPowerValue);
+				const CarModel car = ParseCarModel(_carName, _carPowerValue);
 				
 				
 				base.AddCompanyModel(_companyname, car);
