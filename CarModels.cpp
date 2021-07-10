@@ -1,8 +1,10 @@
 ﻿// Add - Add a new company with a car (name, type, powervalue);
 // Print - if arguments are empty, prints all the database. Also available:
-// Print "companyname" (to print all models for this company)
+// Print "companyname" - to print all models for this company
 // Print "cartype" - print all cars with this type
-// Print "carname" - print an information about car;
+// Print "carname" - print an information about car
+// Del "companyname" - to delete a company, also couts number of deleted cars
+// Del "companyname" "carname" - to delete an exact car from a company;
 
 #include <iostream>
 #include <string>
