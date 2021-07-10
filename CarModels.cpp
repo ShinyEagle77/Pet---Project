@@ -13,7 +13,7 @@
 #include <set>
 #include <iomanip>
 #include <sstream>
-
+#include <cctype>
 
 using namespace std;
 
@@ -127,10 +127,19 @@ ostream& operator << (ostream& stream, const CarModel& carmodel)
 	return stream;
 }
 
-
 bool operator < (const CarModel& r, const CarModel& l)
 {
 	return (r.GetCarModelName() < l.GetCarModelName());
+}
+
+bool operator<(const string& lhs, const CarModel& rhs)
+{
+	return lhs < rhs.GetCarModelName();
+}
+
+bool operator<(const CarModel& lhs, const string& rhs)
+{
+	return lhs.GetCarModelName() < rhs;
 }
 
 class Database
@@ -208,9 +217,14 @@ public:
 		{
 			for (const auto& k : database)
 			{
-				if (k.first == companyname)
+				if (k.second.empty())
+				{
+					cout << companyname << " hasn't any cars" << endl;
+				}
+				else if (k.first == companyname)
 				{
 					unsigned int s = 0;
+					cout << companyname << ": ";
 					for (const auto& i : k.second)
 					{
 
@@ -284,55 +298,41 @@ public:
 		}
 	}
 
-	bool DeleteCompany(const string& _companyname)
+	unsigned int DeleteCompany(const string& _companyname)
 	{
-		for (const auto& k : database)
+		if (database.find(_companyname) != database.end())
 		{
-			if (k.first == _companyname)
+			unsigned int deletedCars = database[_companyname].size();
+			database.erase(_companyname);
+			return deletedCars;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	bool DeleteCarModel(const string& _companyname, const string& _carmodel)
+	{
+		if (auto company_it = database.find(_companyname); company_it != database.end())
+		{
+			if (auto carmodel_it = company_it->second.find(_carmodel); carmodel_it != company_it->second.end())
 			{
-				database.erase(_companyname);
+				company_it->second.erase(carmodel_it);
 				return true;
 			}
-			else
-			{
-				return false;
-			}
 		}
+		else
+		{
+			return false;
+		}
+
 		return false;
 	}
 
-	int DeleteCarMOdel(const string& _companyname, const string& _carmodel)
-	{
-		for (const auto& k : database)
-		{
-			if (k.first == _companyname)
-			{
-				for (const auto& i : k.second)
-				{
-					if (i.GetCarModelName() == _carmodel)
-					{
-						set<CarModel>::iterator it = k.second.find(i.GetCarModelName());
-					}
-
-				}
-			}
-		}
-	}
 private:
-	map<string, set<CarModel>> database;
+	map<string, set<CarModel, less<>>> database;
 };
-
-
-
-
-//void ValidNextCharAndSkip (stringstream& s, const string& carmodel) 
-//{
-//	if (s.peek() != ' ')
-//	{
-//		throw logic_error("Wrong format in: " + carmodel);
-//	}
-//	s.ignore(1);
-//}
 
 CarModel ParseCarModel(const string& carmodel, const string& cartype, const int& powerValue)
 {
@@ -340,11 +340,48 @@ CarModel ParseCarModel(const string& carmodel, const string& cartype, const int&
 	stringstream car_type(cartype);
 	string name, type;
 	car_stream >> name;
-	// ValidNextCharAndSkip(car_stream, carmodel);
+	
+	for (const auto& k : name)
+	{
+		if (isalpha(k) == 0)
+		{
+			throw out_of_range("Car name contains wrong symbols: " + carmodel);
+		}
+	}
+	
 	car_type >> type;
-	// ValidNextCharAndSkip(car_stream, carmodel);
+	
+	for (const auto& k : type)
+	{
+		if (isalpha(k) == 0)
+		{
+			throw out_of_range("Car type contains wrong symbols: " + cartype);
+		}
+	}
+	
 	return { name, type, powerValue };
+}
 
+string ParseCompanyName (const string& _companyname)
+{
+	stringstream company_stream(_companyname);
+	string name;
+	company_stream >> name;
+	
+	if (name.size() > 15 || name.empty())
+	{
+		throw out_of_range("Company name is too long: " + _companyname);
+	}
+
+	for (const auto& k : name)
+	{
+		if (isalpha(k) == 0)
+		{
+			throw out_of_range("Company name contains wrong symbols: " + _companyname);
+		}
+	}
+
+	return { name };
 }
 
 int main()
@@ -367,9 +404,10 @@ int main()
 
 				stream >> _companyname >> _carName >> _carType >> _carPowerValue;
 
+				const string companyname = ParseCompanyName(_companyname);
 				const CarModel car = ParseCarModel(_carName, _carType, _carPowerValue);
 
-				base.AddCompanyModel(_companyname, car);
+				base.AddCompanyModel(companyname, car);
 
 			}
 			else if (operation == "Print")
@@ -407,6 +445,8 @@ int main()
 				string _companyname, _carname;
 				stream >> _companyname;
 
+				const string companyname = ParseCompanyName(_companyname);
+				
 				if (!stream.eof())
 				{
 					stream >> _carname;
@@ -414,13 +454,25 @@ int main()
 
 				if (_carname.empty())
 				{
-					if (base.DeleteCompany(_companyname))
+					const int deletedCars = base.DeleteCompany(companyname);
+					if (deletedCars > 0)
 					{
-						cout << _companyname << " was deleted successfully" << endl;
+						cout << companyname << " was successfully deleted with " << deletedCars << " cars" << endl;
+					}
+					else if (deletedCars == 0)
+					{
+						cout << "Company name " << companyname << " wasn't found" << endl;
+					}
+				}
+				else
+				{
+					if (base.DeleteCarModel(companyname, _carname))
+					{
+						cout << _carname << " made by a " << companyname << " was successfully deleted " << endl;
 					}
 					else
 					{
-						cout << "Company named " << _companyname << " not found" << endl;
+						cout << companyname << " has no car model named " << _carname << endl;
 					}
 				}
 			}
