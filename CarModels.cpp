@@ -1,4 +1,8 @@
-﻿// ADD, PRINT, FIND, DEL
+﻿// Add - Add a new company with a car (name, type, powervalue);
+// Print - if arguments are empty, prints all the database. Also available:
+// Print "companyname" (to print all models for this company)
+// Print "cartype" - print all cars with this type
+// Print "carname" - print an information about car;
 
 #include <iostream>
 #include <string>
@@ -76,13 +80,13 @@ using namespace std;
 class CarModel
 {
 public:
-	CarModel (const string& new_name, const string& new_type, const  int& new_powerValue)
+	CarModel(const string& new_name, const string& new_type, const  int& new_powerValue)
 	{
 		if (new_name.size() > 12 || new_name.empty())
 		{
 			throw out_of_range("Model name is incorrect: " + new_name);
 		}
-		else if (new_type.size () > 8 || new_type.empty())
+		else if (new_type.size() > 8 || new_type.empty())
 		{
 			throw out_of_range("Type name is incorrect " + new_type);
 		}
@@ -95,15 +99,15 @@ public:
 		powerValue = new_powerValue;
 	}
 
-	string GetCarModelName () const
+	string GetCarModelName() const
 	{
 		return name;
 	}
-	string GetCarType () const
+	string GetCarType() const
 	{
 		return type;
 	}
-	int GetCarPowerValue () const
+	int GetCarPowerValue() const
 	{
 		return powerValue;
 	}
@@ -132,10 +136,38 @@ bool operator < (const CarModel& r, const CarModel& l)
 class Database
 {
 public:
-	
-	void AddCompanyModel (const string& company, const CarModel& carmodel)
+
+	void AddCompanyModel(const string& company, const CarModel& carmodel)
 	{
 		database[company].insert(carmodel);
+	}
+
+	int CheckString(const string& sinput) const
+	{
+		for (const auto& k : database)
+		{
+			if (k.first == sinput)
+			{
+				return 1;
+			}
+			else
+			{
+				for (const auto& i : k.second)
+				{
+					if (i.GetCarType() == sinput)
+					{
+						return 2;
+					}
+					else if (i.GetCarModelName() == sinput)
+					{
+						return 3;
+					}
+				}
+			}
+		}
+
+		return 4;
+
 	}
 
 	void PrintAllModels() const
@@ -155,18 +187,18 @@ public:
 				{
 					cout << k.GetCarModelName() << ", ";
 				}
-				else if ( s == i.second.size())
+				else if (s == i.second.size())
 				{
 					cout << k.GetCarModelName();
 				}
-				
+
 			}
 			cout << endl;
 		}
 	}
-	
-	
-	void PrintCompany (const string& companyname) const
+
+
+	void PrintCompany(const string& companyname) const
 	{
 		if (database.count(companyname) == 0)
 		{
@@ -181,27 +213,111 @@ public:
 					unsigned int s = 0;
 					for (const auto& i : k.second)
 					{
-						
+
 						++s;
+
 						if (s < k.second.size())
 						{
 							cout << i.GetCarModelName() << ", ";
 						}
-						else if( s == k.second.size())
+
+						else if (s == k.second.size())
 						{
 							cout << i.GetCarModelName();
 						}
-						
+
 					}
 					cout << endl;
 				}
 			}
 		}
-		
+
 	}
-	
 
+	void PrintType(const string& sinput) const
+	{
+		vector <string> typebase;
+		for (const auto& k : database)
+		{
+			for (const auto& i : k.second)
+			{
+				if (i.GetCarType() == sinput)
+				{
 
+					typebase.push_back(i.GetCarModelName());
+
+				}
+			}
+		}
+
+		cout << sinput << ": ";
+		unsigned int x = 0;
+		for (const auto& s : typebase)
+		{
+			++x;
+			if (x < typebase.size())
+			{
+				cout << s << ", ";
+			}
+			else if (x == typebase.size())
+			{
+				cout << s;
+			}
+
+		}
+
+		cout << endl;
+
+	}
+
+	void PrintCarInformation(const string& sinput) const
+	{
+		for (const auto& k : database)
+		{
+			for (const auto& i : k.second)
+			{
+				if (i.GetCarModelName() == sinput)
+				{
+					cout << i.GetCarModelName() << " made by" << k.first << " with " << i.GetCarType() << " type " << " and " << i.GetCarPowerValue() << "hp" << endl;
+				}
+			}
+		}
+	}
+
+	bool DeleteCompany(const string& _companyname)
+	{
+		for (const auto& k : database)
+		{
+			if (k.first == _companyname)
+			{
+				database.erase(_companyname);
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		return false;
+	}
+
+	int DeleteCarMOdel(const string& _companyname, const string& _carmodel)
+	{
+		for (const auto& k : database)
+		{
+			if (k.first == _companyname)
+			{
+				for (const auto& i : k.second)
+				{
+					if (i.GetCarModelName() == _carmodel)
+					{
+						set<CarModel>::iterator it = k.second.find(i.GetCarModelName());
+					}
+
+				}
+			}
+		}
+	}
 private:
 	map<string, set<CarModel>> database;
 };
@@ -209,16 +325,16 @@ private:
 
 
 
-void ValidNextCharAndSkip (stringstream& s, const string& carmodel) 
-{
-	if (s.peek() != ' ')
-	{
-		throw logic_error("Wrong format in: " + carmodel);
-	}
-	s.ignore(1);
-}
+//void ValidNextCharAndSkip (stringstream& s, const string& carmodel) 
+//{
+//	if (s.peek() != ' ')
+//	{
+//		throw logic_error("Wrong format in: " + carmodel);
+//	}
+//	s.ignore(1);
+//}
 
-CarModel ParseCarModel (const string& carmodel, const string& cartype, const int& powerValue)
+CarModel ParseCarModel(const string& carmodel, const string& cartype, const int& powerValue)
 {
 	stringstream car_stream(carmodel);
 	stringstream car_type(cartype);
@@ -228,7 +344,7 @@ CarModel ParseCarModel (const string& carmodel, const string& cartype, const int
 	car_type >> type;
 	// ValidNextCharAndSkip(car_stream, carmodel);
 	return { name, type, powerValue };
-	
+
 }
 
 int main()
@@ -237,7 +353,7 @@ int main()
 	{
 		Database base;
 		string command;
-		while(getline(cin,command))
+		while (getline(cin, command))
 		{
 			stringstream stream(command);
 
@@ -249,38 +365,76 @@ int main()
 				string _companyname, _carName, _carType;
 				int _carPowerValue;
 
-				stream >> _companyname >> _carName >> _carType >> _carPowerValue; 
+				stream >> _companyname >> _carName >> _carType >> _carPowerValue;
 
 				const CarModel car = ParseCarModel(_carName, _carType, _carPowerValue);
-				
+
 				base.AddCompanyModel(_companyname, car);
-				
+
 			}
 			else if (operation == "Print")
 			{
-				string _companyname;
-				stream >> _companyname;
-				
-				if (_companyname.empty())
+				string sinput;
+				stream >> sinput;
+
+				if (sinput.empty())
 				{
 					base.PrintAllModels();
 				}
 				else
 				{
-					base.PrintCompany(_companyname);
+					if (base.CheckString(sinput) == 1)
+					{
+						base.PrintCompany(sinput);
+					}
+					else if (base.CheckString(sinput) == 2)
+					{
+						base.PrintType(sinput);
+					}
+					else if (base.CheckString(sinput) == 3)
+					{
+						base.PrintCarInformation(sinput);
+					}
+					else if (base.CheckString(sinput) == 4)
+					{
+						cout << "No such a type or a company in database: " + sinput << endl;
+					}
 				}
-				
+
+			}
+			else if (operation == "Del")
+			{
+				string _companyname, _carname;
+				stream >> _companyname;
+
+				if (!stream.eof())
+				{
+					stream >> _carname;
+				}
+
+				if (_carname.empty())
+				{
+					if (base.DeleteCompany(_companyname))
+					{
+						cout << _companyname << " was deleted successfully" << endl;
+					}
+					else
+					{
+						cout << "Company named " << _companyname << " not found" << endl;
+					}
+				}
 			}
 			else if (!operation.empty())
 			{
-				throw logic_error("Unknown command " + command);
+				throw logic_error("Unknown command: " + command);
 			}
 		}
-	} catch (exception& ex) {
+	}
+	catch (exception& ex) {
 
 		cout << ex.what() << endl;
 	}
 
 	return 0;
-	
+
 }
