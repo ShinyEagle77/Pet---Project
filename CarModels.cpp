@@ -9,7 +9,7 @@
 #include <set>
 #include <iomanip>
 #include <sstream>
-#include <fstream>
+
 
 using namespace std;
 
@@ -78,11 +78,11 @@ class CarModel
 public:
 	CarModel (const string& new_name, const string& new_type, const  int& new_powerValue)
 	{
-		if (new_name.size() > 15 || new_name.empty())
+		if (new_name.size() > 12 || new_name.empty())
 		{
 			throw out_of_range("Model name is incorrect: " + new_name);
 		}
-		else if (new_type.size () > 12 || new_type.empty())
+		else if (new_type.size () > 8 || new_type.empty())
 		{
 			throw out_of_range("Type name is incorrect " + new_type);
 		}
@@ -132,30 +132,84 @@ bool operator < (const CarModel& r, const CarModel& l)
 class Database
 {
 public:
-
+	
 	void AddCompanyModel (const string& company, const CarModel& carmodel)
 	{
 		database[company].insert(carmodel);
 	}
 
-	void PrintCompanyModels() const
+	void PrintAllModels() const
 	{
+		if (database.empty())
+		{
+			cout << "No models in database" << endl;
+		}
 		for (const auto& i : database)
 		{
+			cout << i.first << ": ";
+			unsigned int s = 0;
 			for (const auto& k : i.second)
 			{
-				cout << i.first << ": " << k.GetCarModelName() << ' ';
+				++s;
+				if (s < i.second.size())
+				{
+					cout << k.GetCarModelName() << ", ";
+				}
+				else if ( s == i.second.size())
+				{
+					cout << k.GetCarModelName();
+				}
+				
 			}
 			cout << endl;
 		}
 	}
+	
+	
+	void PrintCompany (const string& companyname) const
+	{
+		if (database.count(companyname) == 0)
+		{
+			cout << "No company in database with name: " + companyname << endl;
+		}
+		else
+		{
+			for (const auto& k : database)
+			{
+				if (k.first == companyname)
+				{
+					unsigned int s = 0;
+					for (const auto& i : k.second)
+					{
+						
+						++s;
+						if (s < k.second.size())
+						{
+							cout << i.GetCarModelName() << ", ";
+						}
+						else if( s == k.second.size())
+						{
+							cout << i.GetCarModelName();
+						}
+						
+					}
+					cout << endl;
+				}
+			}
+		}
+		
+	}
+	
+
 
 private:
 	map<string, set<CarModel>> database;
 };
 
 
-void ValidNextCharAndSkip (stringstream& s, const string& carmodel) // NEEDS TO REWORK
+
+
+void ValidNextCharAndSkip (stringstream& s, const string& carmodel) 
 {
 	if (s.peek() != ' ')
 	{
@@ -164,19 +218,15 @@ void ValidNextCharAndSkip (stringstream& s, const string& carmodel) // NEEDS TO 
 	s.ignore(1);
 }
 
-CarModel ParseCarModel (const string& carmodel, const int& powerValue) // REWORK!!!
+CarModel ParseCarModel (const string& carmodel, const string& cartype, const int& powerValue)
 {
 	stringstream car_stream(carmodel);
+	stringstream car_type(cartype);
 	string name, type;
 	car_stream >> name;
-	ValidNextCharAndSkip(car_stream, carmodel);
-	car_stream >> type;
-	ValidNextCharAndSkip(car_stream, carmodel);
-	if (!car_stream.eof() || !car_stream)
-	{
-		throw logic_error("Wrong format : " + carmodel);
-	}
-	
+	// ValidNextCharAndSkip(car_stream, carmodel);
+	car_type >> type;
+	// ValidNextCharAndSkip(car_stream, carmodel);
 	return { name, type, powerValue };
 	
 }
@@ -199,17 +249,27 @@ int main()
 				string _companyname, _carName, _carType;
 				int _carPowerValue;
 
-				stream >> _companyname >> _carName >> _carType >> _carPowerValue; // REWORK THIS SHIT
+				stream >> _companyname >> _carName >> _carType >> _carPowerValue; 
 
-				const CarModel car = ParseCarModel(_carName, _carPowerValue);
-				
+				const CarModel car = ParseCarModel(_carName, _carType, _carPowerValue);
 				
 				base.AddCompanyModel(_companyname, car);
 				
 			}
 			else if (operation == "Print")
 			{
-				base.PrintCompanyModels();
+				string _companyname;
+				stream >> _companyname;
+				
+				if (_companyname.empty())
+				{
+					base.PrintAllModels();
+				}
+				else
+				{
+					base.PrintCompany(_companyname);
+				}
+				
 			}
 			else if (!operation.empty())
 			{
