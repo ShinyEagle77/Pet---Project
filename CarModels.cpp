@@ -1,10 +1,13 @@
-﻿// Add - Add a new company with a car (name, type, powervalue);
-// Print - if arguments are empty, prints all the database. Also available:
-// Print "companyname" - to print all models for this company
-// Print "cartype" - print all cars with this type
-// Print "carname" - print an information about car
-// Del "companyname" - to delete a company, also couts number of deleted cars
+﻿// Add "companyname" - Add a new company with empty set of carmodels list,
+// Add "companyname" "carname" "cartype" "carpowervalue(int)" - Add a new company with a car (name, type, powervalue),
+// Print - prints all the database,
+// Print "companyname" - to print all models for this company,
+// Print "cartype" - to print all cars with this type,
+// Print "carname" - to print an information about car,
+// Del "All" - to clear all database,
+// Del "companyname" - to delete a company, also couts number of deleted cars,
 // Del "companyname" "carname" - to delete an exact car from a company;
+// Change
 
 #include <iostream>
 #include <string>
@@ -18,7 +21,6 @@
 #include <cctype>
 
 using namespace std;
-
 
 //class Owner
 //{
@@ -78,8 +80,7 @@ using namespace std;
 //}
 
 
-
-class CarModel
+class [[nodiscard]] CarModel
 {
 public:
 	CarModel(const string& new_name, const string& new_type, const  int& new_powerValue)
@@ -144,13 +145,18 @@ bool operator<(const CarModel& lhs, const string& rhs)
 	return lhs.GetCarModelName() < rhs;
 }
 
-class Database
+class [[nodiscard]] Database
 {
 public:
 
-	void AddCompanyModel(const string& company, const CarModel& carmodel)
+	void AddModel(const string& company, const CarModel& carmodel)
 	{
 		database[company].insert(carmodel);
+	}
+
+	void AddCompany (const string& company)
+	{
+		database[company];
 	}
 
 	int CheckString(const string& sinput) const
@@ -176,9 +182,7 @@ public:
 				}
 			}
 		}
-
 		return 4;
-
 	}
 
 	void PrintAllModels() const
@@ -294,7 +298,7 @@ public:
 			{
 				if (i.GetCarModelName() == sinput)
 				{
-					cout << i.GetCarModelName() << " made by" << k.first << " with " << i.GetCarType() << " type " << " and " << i.GetCarPowerValue() << "hp" << endl;
+					cout << i.GetCarModelName() << " made by " << k.first << " with " << i.GetCarType() << " type" << " and " << i.GetCarPowerValue() << "hp" << endl;
 				}
 			}
 		}
@@ -331,6 +335,20 @@ public:
 
 		return false;
 	}
+
+	bool DeleteAll (const string& string)
+	{
+		if (database.empty())
+		{
+			return false;
+		}
+		else
+		{
+			database.clear();
+			return true;
+		}
+	}
+
 
 private:
 	map<string, set<CarModel, less<>>> database;
@@ -399,17 +417,36 @@ int main()
 			string operation;
 			stream >> operation;
 
-			if (operation == "Add")
+			if (operation == "Add") 
 			{
-				string _companyname, _carName, _carType;
-				int _carPowerValue;
+				string _companyname;
 
-				stream >> _companyname >> _carName >> _carType >> _carPowerValue;
+				stream >> _companyname;
+				if (stream.eof())
+				{
+					if (_companyname.empty())
+					{
+						cout << "Command need an argument, avaliable: companyname, carmodel, cartype, carpowervalue || companyname" << endl;
+					}
+					else
+					{
+						const string companyname = ParseCompanyName(_companyname);
+						base.AddCompany(companyname);
+					}
+					
+				}
+				else
+				{
+					string _carName, _carType;
+					int _carPowerValue;
+					
+					stream >> _carName >> _carType >> _carPowerValue;
+					
+					const string companyname = ParseCompanyName(_companyname);
+					const CarModel car = ParseCarModel(_carName, _carType, _carPowerValue);
 
-				const string companyname = ParseCompanyName(_companyname);
-				const CarModel car = ParseCarModel(_carName, _carType, _carPowerValue);
-
-				base.AddCompanyModel(companyname, car);
+					base.AddModel(companyname, car);
+				}
 
 			}
 			else if (operation == "Print")
@@ -444,40 +481,68 @@ int main()
 			}
 			else if (operation == "Del")
 			{
-				string _companyname, _carname;
+				string _companyname;
 				stream >> _companyname;
 
-				const string companyname = ParseCompanyName(_companyname);
-				
-				if (!stream.eof())
+				if (_companyname.empty())
 				{
-					stream >> _carname;
-				}
-
-				if (_carname.empty())
-				{
-					const int deletedCars = base.DeleteCompany(companyname);
-					if (deletedCars > 0)
-					{
-						cout << companyname << " was successfully deleted with " << deletedCars << " cars" << endl;
-					}
-					else if (deletedCars == 0)
-					{
-						cout << "Company name " << companyname << " wasn't found" << endl;
-					}
+					cout << "Command need an argument, available : companyname, carmodel || All " << endl;
 				}
 				else
 				{
-					if (base.DeleteCarModel(companyname, _carname))
+					const string companyname = ParseCompanyName(_companyname);
+
+					if (companyname == "All")
 					{
-						cout << _carname << " made by a " << companyname << " was successfully deleted " << endl;
+						if (base.DeleteAll(companyname))
+						{
+							cout << "All database was deleted!" << endl;
+						}
+						else
+						{
+							cout << "Database is empty, nothing to clear" << endl;
+						}
 					}
+					
 					else
 					{
-						cout << companyname << " has no car model named " << _carname << endl;
+						string _carname;
+						
+						if (!stream.eof())
+						{
+							stream >> _carname;
+						}
+
+						if (_carname.empty())
+						{
+							const unsigned int deletedCars = base.DeleteCompany(companyname);
+							
+							if (deletedCars > 0)
+							{
+								cout << companyname << " was successfully deleted with " << deletedCars << " cars" << endl;
+							}
+							
+							else if (deletedCars == 0)
+							{
+								cout << "Company name " << companyname << " wasn't found" << endl;
+							}
+						}
+						
+						else
+						{
+							if (base.DeleteCarModel(companyname, _carname))
+							{
+								cout << _carname << " made by a " << companyname << " was successfully deleted " << endl;
+							}
+							else
+							{
+								cout << companyname << " has no car model named " << _carname << endl;
+							}
+						}
 					}
 				}
 			}
+			
 			else if (!operation.empty())
 			{
 				throw logic_error("Unknown command: " + command);
