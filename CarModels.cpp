@@ -7,7 +7,9 @@
 // Del "All" - to clear all database,
 // Del "companyname" - to delete a company, also couts number of deleted cars,
 // Del "companyname" "carname" - to delete an exact car from a company;
-// Change
+// Change "oldcompanyname" "newcompanyname" - to change a companyname, new company would has all cars of old company.
+
+// Change company car
 
 #include <iostream>
 #include <string>
@@ -19,6 +21,7 @@
 #include <iomanip>
 #include <sstream>
 #include <cctype>
+#include <utility>
 
 using namespace std;
 
@@ -95,7 +98,7 @@ public:
 		}
 		else if (new_powerValue > 2500 || new_powerValue < 250)
 		{
-			throw out_of_range("Powe Value is incorrect " + to_string(new_powerValue));
+			throw out_of_range("Power Value is incorrect " + to_string(new_powerValue));
 		}
 		name = new_name;
 		type = new_type;
@@ -120,8 +123,6 @@ private:
 	string type;
 	int powerValue;
 };
-
-
 
 ostream& operator << (ostream& stream, const CarModel& carmodel)
 {
@@ -211,7 +212,6 @@ public:
 			cout << endl;
 		}
 	}
-
 
 	void PrintCompany(const string& companyname) const
 	{
@@ -336,19 +336,56 @@ public:
 		return false;
 	}
 
-	bool DeleteAll (const string& string)
+	unsigned int DeleteAll (const string& string)
 	{
+		const unsigned int count = database.size();
+
 		if (database.empty())
 		{
-			return false;
+			return 0;
 		}
 		else
 		{
 			database.clear();
-			return true;
+			return count;
 		}
-	}
 
+	}
+	
+	unsigned int ChangeCompany(const string& name, const string& newname)
+	{
+		unsigned int result = 0;
+
+		if (database.find(name) != database.end())
+		{
+			result = 1; // Company NAME found;
+		}
+		if (database.find(name) != database.end() && database.find(newname) != database.end())
+		{
+			result = 2; // Companies NAME and NEWNAME found;
+		}
+		
+		if (result == 0)
+		{
+			return 0;
+		}
+		else if (result == 1)
+		{
+
+			auto node = database.extract(name);
+			node.key() = newname;
+			database.insert(move(node));
+			
+			database.erase(name);
+			return 2;
+		}
+		else if (result == 2)
+		{
+			return 3;
+		}
+
+		return 0;
+	}
 
 private:
 	map<string, set<CarModel, less<>>> database;
@@ -494,11 +531,12 @@ int main()
 
 					if (companyname == "All")
 					{
-						if (base.DeleteAll(companyname))
+						const unsigned int count = base.DeleteAll(companyname);
+						if (count > 0)
 						{
-							cout << "All database was deleted!" << endl;
+							cout << "All database was deleted with " << count << " companies" << endl;
 						}
-						else
+						else if (count == 0)
 						{
 							cout << "Database is empty, nothing to clear" << endl;
 						}
@@ -540,6 +578,52 @@ int main()
 							}
 						}
 					}
+				}
+			}
+
+			else if(operation == "Change")
+			{
+				string _companyname;
+				stream >> _companyname;
+
+				if (_companyname.empty())
+				{
+					cout << "Command need argument, available: " << endl;
+				}
+				else
+				{
+					string _newcompanyname;
+					stream >> _newcompanyname;
+					const string companyname = ParseCompanyName(_companyname);
+
+					if (_newcompanyname.empty())
+					{
+						cout << "Write as a second argument a NEW companyname" << endl;
+					}
+					else
+					{
+						const string newcompanyname = ParseCompanyName(_newcompanyname);
+
+						unsigned int result = base.ChangeCompany(_companyname, _newcompanyname);
+
+						if (result == 0)
+						{
+							cout << "Company named " << _companyname << " not found" << endl;
+						}
+						else if (result == 1)
+						{
+							cout << "Company named " << _newcompanyname << " already exist" << endl;
+						}
+						else if (result == 2)
+						{
+							cout << "Company named " << _companyname << " changed her name to " << _newcompanyname << endl;
+						}
+						else if (result == 3)
+						{
+							cout << _companyname << " and " << _newcompanyname << " already exist " << endl;
+						}
+					}
+					
 				}
 			}
 			
