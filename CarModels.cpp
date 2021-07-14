@@ -9,7 +9,7 @@
 // Del "companyname" "carname" - to delete an exact car from a company;
 // Change "oldcompanyname" "newcompanyname" - to change a companyname, new company would has all cars of old company.
 
-// Change company car
+// Change company car, ADD FUNCTIONS for PRINT (check comments), Add enum class for a return value;
 
 #include <iostream>
 #include <string>
@@ -94,11 +94,11 @@ public:
 		}
 		else if (new_type.size() > 8 || new_type.empty())
 		{
-			throw out_of_range("Type name is incorrect " + new_type);
+			throw out_of_range("Type name is incorrect: " + new_type);
 		}
 		else if (new_powerValue > 2500 || new_powerValue < 250)
 		{
-			throw out_of_range("Power Value is incorrect " + to_string(new_powerValue));
+			throw out_of_range("Power Value is incorrect: " + to_string(new_powerValue));
 		}
 		name = new_name;
 		type = new_type;
@@ -160,13 +160,15 @@ public:
 		database[company];
 	}
 
-	int CheckString(const string& sinput) const
+	unsigned int CheckString(const string& sinput) const
 	{
+		unsigned int CheckResult = 4;
 		for (const auto& k : database)
 		{
 			if (k.first == sinput)
 			{
-				return 1;
+				CheckResult = 1;
+				return CheckResult;
 			}
 			else
 			{
@@ -174,16 +176,18 @@ public:
 				{
 					if (i.GetCarType() == sinput)
 					{
-						return 2;
+						CheckResult = 2;
+						return CheckResult;
 					}
 					else if (i.GetCarModelName() == sinput)
 					{
-						return 3;
+						CheckResult = 3;
+						return CheckResult;
 					}
 				}
 			}
 		}
-		return 4;
+		return CheckResult;
 	}
 
 	void PrintAllModels() const
@@ -234,7 +238,7 @@ public:
 					for (const auto& i : k.second)
 					{
 
-						++s;
+						++s; // MAKE AS FUNCTION
 
 						if (s < k.second.size())
 						{
@@ -275,7 +279,7 @@ public:
 		for (const auto& s : typebase)
 		{
 			++x;
-			if (x < typebase.size())
+			if (x < typebase.size()) // MAKE AS FUNCTION
 			{
 				cout << s << ", ";
 			}
@@ -497,19 +501,20 @@ int main()
 				}
 				else
 				{
-					if (base.CheckString(sinput) == 1)
+					const unsigned int result = base.CheckString(sinput);
+					if (result == 1)
 					{
 						base.PrintCompany(sinput);
 					}
-					else if (base.CheckString(sinput) == 2)
+					else if (result == 2)
 					{
 						base.PrintType(sinput);
 					}
-					else if (base.CheckString(sinput) == 3)
+					else if (result == 3)
 					{
 						base.PrintCarInformation(sinput);
 					}
-					else if (base.CheckString(sinput) == 4)
+					else if (result == 4)
 					{
 						cout << "No such a type or a company in database: " + sinput << endl;
 					}
