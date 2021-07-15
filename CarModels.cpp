@@ -1,5 +1,4 @@
-﻿
-// Add "companyname" - Add a new company with empty set of carmodels list,
+﻿// Add "companyname" - Add a new company with empty set of carmodels list,
 // Add "companyname" "carname" "cartype" "carpowervalue(int)" - Add a new company with a car (name, type, powervalue),
 // Print - prints all the database,
 // Print "companyname" - to print all models for this company,
@@ -85,10 +84,22 @@ using namespace std;
 //}
 
 
+enum class WhatFound
+{
+	Nothing,
+	Car,
+	Type,
+	Companyname,
+	OldCompanyNameOnly,
+	BothCompaniesAreExist,
+	OldCarNameOnly,
+	BothCarsAreExist,
+};
+
 class CarModel
 {
 public:
-	CarModel(const string& new_name, const string& new_type, const  int& new_powerValue)
+	CarModel(const string& new_name, const string& new_type, const  int& new_powerValue) // DefaultConstructor, all numbers are my own limits for a CarParameters;
 	{
 		if (new_name.size() > 12 || new_name.empty())
 		{
@@ -120,11 +131,6 @@ public:
 		return powerValue;
 	}
 
-	void SetCarModelName(const string& newname)
-	{
-		name = newname;
-	}
-
 private:
 	string name;
 	string type;
@@ -143,12 +149,12 @@ bool operator < (const CarModel& r, const CarModel& l)
 	return (r.GetCarModelName() < l.GetCarModelName());
 }
 
-bool operator<(const string& lhs, const CarModel& rhs)
+bool operator < (const string& lhs, const CarModel& rhs)
 {
 	return lhs < rhs.GetCarModelName();
 }
 
-bool operator<(const CarModel& lhs, const string& rhs)
+bool operator < (const CarModel& lhs, const string& rhs)
 {
 	return lhs.GetCarModelName() < rhs;
 }
@@ -180,7 +186,7 @@ public:
 			for (const auto& k : i.second)
 			{
 				++s;
-				if (s < i.second.size())
+				if (s < i.second.size())		// If there are several models in a row, adds ',' between them for a better printing. (Bayonetta, Aventador, California)
 				{
 					cout << k.GetCarModelName() << ", ";
 				}
@@ -204,7 +210,7 @@ public:
 		{
 			for (const auto& k : database)
 			{
-				if (k.second.empty())
+				if (k.second.empty()) // Checking if company has any cars
 				{
 					cout << companyname << " hasn't any cars" << endl;
 				}
@@ -212,7 +218,7 @@ public:
 				{
 					uint16_t s = 0;
 					cout << companyname << ": ";
-					for (const auto& i : k.second)
+					for (const auto& i : k.second) // If there are several models in a row, adds ',' between them for a better printing. (Bayonetta, Aventador, California)
 					{
 
 						++s;
@@ -235,14 +241,14 @@ public:
 
 	}
 
-	void PrintType(const string& sinput) const
+	void PrintType(const string& type) const
 	{
-		vector <string> typebase;
+		vector <string> typebase; // Creating a temporary storage for the all cars which has a type == sinput;
 		for (const auto& k : database)
 		{
 			for (const auto& i : k.second)
 			{
-				if (i.GetCarType() == sinput)
+				if (i.GetCarType() == type)
 				{
 
 					typebase.push_back(i.GetCarModelName());
@@ -251,7 +257,7 @@ public:
 			}
 		}
 
-		cout << sinput << ": ";
+		cout << type << ": "; // Printing this vector, which storage all cars with type == sinput;
 		uint16_t x = 0;
 		for (const auto& s : typebase)
 		{
@@ -285,21 +291,21 @@ public:
 		}
 	}
 
-	unsigned int DeleteCompany(const string& _companyname)
+	unsigned int DeleteCompany(const string& companyname)
 	{
-		if (database.find(_companyname) != database.end())
+		if (database.find(companyname) != database.end()) // If Company with companyname is found
 		{
-			const unsigned int deletedCars = database[_companyname].size();
-			database.erase(_companyname);
-			return deletedCars;
+			const unsigned int deletedCars = database[companyname].size(); // Remember a quantity value for all models which company has,
+			database.erase(companyname);
+			return deletedCars; // Returning quantity value for a better print format;
 		}
 		else
 		{
-			return 0;
+			return 0; // Else return 0;
 		}
 	}
 
-	bool DeleteCarModel(const string& _companyname, const string& _carmodel)
+	bool DeleteCarModel(const string& _companyname, const string& _carmodel) // Returns true if it is successful to delete a car, else return false;
 	{
 		if (auto company_it = database.find(_companyname); company_it != database.end())
 		{
@@ -319,7 +325,7 @@ public:
 
 	unsigned int DeleteAll(const string& string)
 	{
-		const unsigned int count = database.size();
+		const unsigned int count = database.size(); // Remember a quantity value of companies in database;
 
 		if (database.empty())
 		{
@@ -327,53 +333,48 @@ public:
 		}
 		else
 		{
-			database.clear();
+			database.clear(); 
 			return count;
 		}
 
 	}
 
-	uint16_t CheckStringToPrint(const string& sinput)
+	WhatFound CheckStringToPrint(const string& sinput)
 	{
-		uint16_t CheckResult = 4;
 		for (const auto& k : database)
 		{
 			if (k.first == sinput)
 			{
-				CheckResult = 1;
-				return CheckResult;
+				return WhatFound::Companyname;
 			}
-			else
+			else // If hasn't found a company with companyname to print, go ahead
 			{
 				for (const auto& i : k.second)
 				{
 					if (i.GetCarType() == sinput)
 					{
-						CheckResult = 2;
-						return CheckResult;
+						return WhatFound::Type;
 					}
 					else if (i.GetCarModelName() == sinput)
 					{
-						CheckResult = 3;
-						return CheckResult;
+						return WhatFound::Car;
 					}
 				}
 			}
 		}
-		return CheckResult;
+		return WhatFound::Nothing;
 	}
 
 	uint16_t CheckStringToChangeCompany(const string& sourcename, const string& newcompanyname)
 	{
 		uint16_t result = 0;
-
 		if (database.find(sourcename) != database.end())
 		{
-			result = 1;  // Company NAME found;
+			result = 1;  // Company with oldname found
 		}
 		if (database.find(sourcename) != database.end() && database.find(newcompanyname) != database.end())
 		{
-			result = 2; // Companies NAME and NEWNAME found;
+			result = 2; // Companies with oldname and newname found
 		}
 
 		return result;
@@ -388,11 +389,11 @@ public:
 			{
 				if (k.second.find(oldcarname) != k.second.end())
 				{
-					result = 1;
+					result = 1; // Car with oldname found
 				}
 				if (k.second.find(oldcarname) != k.second.end() && k.second.find(newcarname) != k.second.end())
 				{
-					result = 2;
+					result = 2; // Car with oldname and newname found
 				}
 			}
 		}
@@ -401,12 +402,12 @@ public:
 		
 	}
 
-	unsigned int ChangeCarInCompany (const string& companyname, const string& oldcarname, const string& newcarname)
+	WhatFound ChangeCarInCompany (const string& companyname, const string& oldcarname, const string& newcarname)
 	{
 		const uint16_t result = CheckStringToChangeCar(companyname, oldcarname, newcarname);
 		if (result == 0)
 		{
-			return 0;
+			return WhatFound::Nothing;
 		}
 		else if (result == 1)
 		{
@@ -418,11 +419,11 @@ public:
 					{
 						if (i.GetCarModelName() == oldcarname)
 						{
-							CarModel newCar{ newcarname, i.GetCarType(), i.GetCarPowerValue() };
-							database[companyname].insert(newCar);
-							if (DeleteCarModel(companyname, oldcarname))
+							CarModel newCar{ newcarname, i.GetCarType(), i.GetCarPowerValue() }; // Creating a new car with same parameters as an old car, except for
+							database[companyname].insert(newCar);								 // CarType and PowerValue,
+							if (DeleteCarModel(companyname, oldcarname))						 // Then delete an old car
 							{
-								return 1;
+								return WhatFound::OldCarNameOnly;
 							}
 						}
 					}
@@ -432,19 +433,19 @@ public:
 		}
 		else if (result == 2)
 		{
-			return 2;
+			return WhatFound::BothCarsAreExist;
 		}
 
-		return 0;
+		return WhatFound::Nothing;
 	}
 
-	uint16_t ChangeCompany(const string& name, const string& newname)
+	WhatFound ChangeCompany(const string& name, const string& newname)
 	{
 		
 		const uint16_t result = CheckStringToChangeCompany(name, newname);
 		if (result == 0)
 		{
-			return 0;
+			return WhatFound::Nothing;
 		}
 		else if (result == 1)
 		{
@@ -454,14 +455,14 @@ public:
 			database.insert(move(node));
 
 			database.erase(name);
-			return 1;
+			return WhatFound::OldCompanyNameOnly;
 		}
 		else if (result == 2)
 		{
-			return 2;
+			return WhatFound::BothCompaniesAreExist;
 		}
 
-		return 0;
+		return WhatFound::Nothing;
 	}
 
 private:
@@ -477,7 +478,7 @@ CarModel ParseCarModel(const string& carmodel, const string& cartype, const int&
 
 	for (const auto& k : name)
 	{
-		if (isalpha(k) == 0)
+		if (isalpha(k) == 0) // Checking if string is containing wrong symbols
 		{
 			throw out_of_range("Car name contains wrong symbols: " + carmodel);
 		}
@@ -493,7 +494,7 @@ CarModel ParseCarModel(const string& carmodel, const string& cartype, const int&
 		}
 	}
 
-	return { name, type, powerValue };
+	return { name, type, powerValue }; // Construct a new CarModel
 }
 
 string ParseCompanyName(const string& _companyname)
@@ -536,9 +537,9 @@ int main()
 				string _companyname;
 
 				stream >> _companyname;
-				if (stream.eof())
+				if (stream.eof())			// If stream reached end of the string, checking input
 				{
-					if (_companyname.empty())
+					if (_companyname.empty()) // If command Add only was inputed
 					{
 						cout << "Command need an argument, avaliable: companyname carmodel cartype carpowervalue, companyname" << endl;
 					}
@@ -574,20 +575,20 @@ int main()
 				}
 				else
 				{
-					const uint16_t result = base.CheckStringToPrint(sinput);
-					if (result == 1)
+					WhatFound result = base.CheckStringToPrint(sinput);
+					if (result == WhatFound::Companyname)
 					{
 						base.PrintCompany(sinput);
 					}
-					else if (result == 2)
+					else if (result == WhatFound::Type)
 					{
 						base.PrintType(sinput);
 					}
-					else if (result == 3)
+					else if (result == WhatFound::Car)
 					{
 						base.PrintCarInformation(sinput);
 					}
-					else if (result == 4)
+					else if (result == WhatFound::Nothing)
 					{
 						cout << "No such a type or a company in database: " + sinput << endl;
 					}
@@ -676,23 +677,23 @@ int main()
 
 					if (_newcompanyname.empty())
 					{
-						cout << "Write as a second argument a NEW companyname" << endl;
+						cout << "Write as a second argument a NEW companyname, or a oldcarname and a newcarname made by companyname" << endl;
 					}
 					else if (_newcarname.empty())
 					{
 						const string newcompanyname = ParseCompanyName(_newcompanyname);
 
-						const unsigned int result = base.ChangeCompany(_companyname, _newcompanyname);
+						const WhatFound result = base.ChangeCompany(_companyname, _newcompanyname);
 
-						if (result == 0)
+						if (result == WhatFound::Nothing)
 						{
 							cout << "Company named " << _companyname << " not found" << endl;
 						}
-						else if (result == 1)
+						else if (result == WhatFound::OldCompanyNameOnly)
 						{
 							cout << "Company named " << _companyname << " changed her name to " << _newcompanyname << endl;
 						}
-						else if (result == 2)
+						else if (result == WhatFound::BothCompaniesAreExist)
 						{
 							cout << _companyname << " and " << _newcompanyname << " already exist " << endl;
 						}
@@ -705,19 +706,18 @@ int main()
 						}
 						else
 						{
-							const string _oldcarname = _newcompanyname;
-							const unsigned int result = base.ChangeCarInCompany(_companyname, _oldcarname, _newcarname);
+							const string _oldcarname = _newcompanyname; // Variable name changed for better readability
+							const WhatFound result = base.ChangeCarInCompany(_companyname, _oldcarname, _newcarname);
 							
-							if (result == 0)
+							if (result == WhatFound::Nothing)
 							{
 								cout << "Car name " << _oldcarname << " not found" << endl;
 							}
-							else if (result == 1)
+							else if (result == WhatFound::OldCarNameOnly)
 							{
-								
 								cout << "Car named " << _oldcarname << " changed name to " << _newcarname << endl;
 							}
-							else if (result == 2)
+							else if (result == WhatFound::BothCarsAreExist)
 							{
 								cout << _oldcarname << " and " << _newcarname << " already exist" << endl;
 							}
