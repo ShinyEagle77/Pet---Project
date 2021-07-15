@@ -26,64 +26,6 @@
 
 using namespace std;
 
-//class Owner
-//{
-//public:
-//	Owner(const string& new_name, const string& new_surname, const int& new_age) // Default constructor for class Owner;
-//	{
-//		if (new_name.size() > 30 || new_name.empty()) // Checking for valid name, surname and age;
-//		{
-//			throw out_of_range("Name has a wrong format: " + new_name);
-//		}
-//		else if (new_surname.size() > 45 || new_surname.empty())
-//		{
-//			throw out_of_range("Surname has a wrong format: " + new_surname);
-//		}
-//		else if (new_age > 100 || new_age < 1)
-//		{
-//			throw out_of_range("Cannot create such an old owner: " + to_string(new_age));
-//		}
-//		name = new_name;
-//		surname = new_surname;
-//		age = new_age;
-//	}
-//
-//	string GetName () const
-//	{
-//		return name;
-//	}
-//	string GetSurname() const
-//	{
-//		return surname;
-//	}
-//
-//	int GetAge() const
-//	{
-//		return age;
-//	}
-//
-//private:
-//	string name;
-//	string surname;
-//	int age;
-//};
-//
-//class Database
-//{
-//public:
-//
-//private:
-//	map<Owner, map<Company, set<CarModel>>> CarsInGarage;
-//};
-//
-//ostream& operator << (ostream& stream, const Owner& owner )
-//{
-//	stream << owner.GetName() << ' ' << owner.GetSurname() << ", "
-//		<< owner.GetAge() << " years old";
-//	return stream;
-//}
-
-
 enum class WhatFound
 {
 	Nothing,
