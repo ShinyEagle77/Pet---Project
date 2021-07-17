@@ -124,9 +124,9 @@ public:
 		for (const auto& i : database)
 		{
 			cout << i.first << ": ";
-			uint16_t s = 0;
 			for (const auto& k : i.second)
 			{
+				static uint16_t s = 0;
 				++s;
 				if (s < i.second.size())		// If there are several models in a row, adds ',' between them for a better printing. (Bayonetta, Aventador, California)
 				{
@@ -158,11 +158,11 @@ public:
 				}
 				else if (k.first == companyname)
 				{
-					uint16_t s = 0;
+					
 					cout << companyname << ": ";
 					for (const auto& i : k.second) // If there are several models in a row, adds ',' between them for a better printing. (Bayonetta, Aventador, California)
 					{
-
+						static uint16_t s = 0;
 						++s;
 
 						if (s < k.second.size())
@@ -200,9 +200,10 @@ public:
 		}
 
 		cout << type << ": "; // Printing this vector, which storage all cars with type == sinput;
-		uint16_t x = 0;
+		
 		for (const auto& s : typebase)
 		{
+			static uint16_t x = 0;
 			++x;
 			if (x < typebase.size()) 
 			{
